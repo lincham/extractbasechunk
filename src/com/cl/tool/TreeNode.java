@@ -80,6 +80,14 @@ public class TreeNode {
 	public String getNodeName(){
 		return this.nodename;
 	}
+	
+	/**
+	 * 设置节点名称
+	 * @return
+	 */
+	public void setNodeName(String name) {
+		this.nodename = name+this.nodename;
+	}
 
 	/**
 	 * 返回孩子节点列表
@@ -95,17 +103,20 @@ public class TreeNode {
 	@Override
 	public String toString() {
 		if(this.children.size() == 0){
-			return " "+this.nodename;
+			return this.nodename+"/";
 		}else{
 			String treestr = "";
-			treestr = "("+this.nodename+" ";			
 			for (TreeNode node:this.children) {
-				treestr += node.toString();
+				treestr += node.toString();	
+				if (treestr.endsWith("/")) {
+					treestr=treestr+this.nodename+" ";
+				}				
 			}
-			treestr += ")";
+			if (this.nodename.contains("[]"))
+				treestr="["+treestr.trim()+"]"+this.nodename.substring(2,this.nodename.length())+" " ;
 			return treestr;
 		}
-	}
+	}	
 	
 	
 }

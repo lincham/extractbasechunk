@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -34,9 +35,22 @@ public class ExtractBaseChunkRun {
 		List<TreeNode> target = run(in,chunkTag);
 		writeFile(target,out);
 	}	
+	
 	public static List<TreeNode> run(String fileIn,String chunkTag) throws IOException{
 		StringBuilder sb = new StringBuilder();//存放读进来的数据		
 		BaseChunk bc = new BaseChunk();
+		ArrayList<String> tagList = new ArrayList<>();
+		List<TreeNode> treeList = new ArrayList<>(); //存放标记了基本语块的树结构
+		
+		//将要提取的基本组块标记存放进列表
+		if (chunkTag.contains(",")) {
+			String[] tag = chunkTag.split(",");	
+			for(String s : tag) {
+				tagList.add(s);
+			}
+		}else {			
+			tagList.add(chunkTag);
+		}
 		
 		FileInputStream fis = new FileInputStream(fileIn);
 		InputStreamReader isr = new InputStreamReader(fis,"GBK");
@@ -54,14 +68,14 @@ public class ExtractBaseChunkRun {
 				{			
 					List<String> a = bc.stringToList(sb.toString());
 					TreeNode t = bc.generateTree(a);
-					bc.searchForChunk(t);
+					bc.searchForChunk(t,tagList);
+					treeList.add(t);
 					sb.delete(0,sb.length());
 				}
 			}			
 		}
 		br.close();
-		List<TreeNode> target = bc.select(chunkTag);
-		return target;
+		return treeList;
 	}
 	
 	public static void writeFile(List<TreeNode> target,String fileOut) throws IOException {
@@ -69,7 +83,7 @@ public class ExtractBaseChunkRun {
 		BufferedWriter bw = new BufferedWriter(fw);
 		for (int i = 0;i<target.size();i++) {
 			bw.write(target.get(i).toString());
-			bw.write("\r\n");
+			bw.newLine();
 		}
 		bw.close();
 	}
