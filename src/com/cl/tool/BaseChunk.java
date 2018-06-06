@@ -59,7 +59,7 @@ public class BaseChunk {
 	
 	
 	//搜寻基本短语块
-	public void searchForChunk(TreeNode tn,ArrayList<String> tagList){
+	public void searchForChunk(TreeNode tn,String tag){
 		List<TreeNode> children =null;
 		boolean flag = true;//是否是基本短语块
 		boolean tried = false;//
@@ -83,8 +83,12 @@ public class BaseChunk {
 				if (tried)
 				{
 					if (flag) {	
-						if(tagList.contains(tn.getNodeName())) {
-							tn.setNodeName("[]");
+						if(tag.contains("all")) {
+							tn.setNodeName("tag:");
+						}else {							
+							if(tag.contains(tn.getNodeName())) {
+								tn.setNodeName("tag:");
+						}
 						}
 						return;
 					}					
@@ -92,7 +96,7 @@ public class BaseChunk {
 				
 				for (int i = 0;i<tn.numChildren();i++)//遍历
 				{
-					searchForChunk(children.get(i),tagList);
+					searchForChunk(children.get(i),tag);
 				}
 			}
 		}

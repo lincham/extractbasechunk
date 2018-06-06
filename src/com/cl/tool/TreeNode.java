@@ -112,8 +112,8 @@ public class TreeNode {
 					treestr=treestr+this.nodename+" ";
 				}				
 			}
-			if (this.nodename.contains("[]"))
-				treestr="["+treestr.trim()+"]"+this.nodename.substring(2,this.nodename.length())+" " ;
+			if (this.nodename.startsWith("tag:"))
+				treestr="["+treestr.trim()+"]"+this.nodename.substring(4,this.nodename.length())+" " ;
 			return treestr;
 		}
 	}	

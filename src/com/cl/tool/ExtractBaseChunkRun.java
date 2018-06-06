@@ -14,9 +14,9 @@ public class ExtractBaseChunkRun {
 	
 	public static void main(String[] args) throws IOException
 	{
-		String in = null;//输入文件路径
-		String out = null;//输出文件路径
-		String chunkTag = null;//要提取的标记
+		String in = "";//输入文件路径
+		String out = "";//输出文件路径
+		String chunkTag = "";//要提取的标记
 		for(int i = 0;i<args.length;i++) {
 			if(args[i].equals("-in")) {
 				in = args[i+1];
@@ -39,18 +39,8 @@ public class ExtractBaseChunkRun {
 	public static List<TreeNode> run(String fileIn,String chunkTag) throws IOException{
 		StringBuilder sb = new StringBuilder();//存放读进来的数据		
 		BaseChunk bc = new BaseChunk();
-		ArrayList<String> tagList = new ArrayList<>();
 		List<TreeNode> treeList = new ArrayList<>(); //存放标记了基本语块的树结构
 		
-		//将要提取的基本组块标记存放进列表
-		if (chunkTag.contains(",")) {
-			String[] tag = chunkTag.split(",");	
-			for(String s : tag) {
-				tagList.add(s);
-			}
-		}else {			
-			tagList.add(chunkTag);
-		}
 		
 		FileInputStream fis = new FileInputStream(fileIn);
 		InputStreamReader isr = new InputStreamReader(fis,"GBK");
@@ -68,7 +58,7 @@ public class ExtractBaseChunkRun {
 				{			
 					List<String> a = bc.stringToList(sb.toString());
 					TreeNode t = bc.generateTree(a);
-					bc.searchForChunk(t,tagList);
+					bc.searchForChunk(t,chunkTag);
 					treeList.add(t);
 					sb.delete(0,sb.length());
 				}
