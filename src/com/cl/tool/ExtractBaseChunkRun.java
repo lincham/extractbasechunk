@@ -1,13 +1,16 @@
 package com.cl.tool;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.lc.nlp4han.constituent.BracketExpUtil;
+import com.lc.nlp4han.constituent.PlainTextByTreeStream;
+import com.lc.nlp4han.constituent.TreeNode;
+import com.lc.nlp4han.ml.util.FileInputStreamFactory;
 
 
 public class ExtractBaseChunkRun {		
@@ -17,6 +20,7 @@ public class ExtractBaseChunkRun {
 		String in = "";//输入文件路径
 		String out = "";//输出文件路径
 		String chunkTag = "";//要提取的标记
+		String encoding ="GBK";//编码格式,默认GBK
 		for(int i = 0;i<args.length;i++) {
 			if(args[i].equals("-in")) {
 				in = args[i+1];
@@ -30,41 +34,35 @@ public class ExtractBaseChunkRun {
 				chunkTag = args[i+1];
 				i++;
 			}
+			if(args[i].equals("-encoding")) {
+				encoding = args[i+1];
+				i++;
+			}
 		}
 		
-		List<TreeNode> target = run(in,chunkTag);
+		List<String> tag = new ArrayList<>();
+		String[] s = chunkTag.split(",");
+		for (int i=0;i<s.length;i++) {
+			tag.add(s[i]);
+		}
+		
+		List<TreeNode> target = run(in,tag,encoding);
 		writeFile(target,out);
 	}	
 	
-	public static List<TreeNode> run(String fileIn,String chunkTag) throws IOException{
-		StringBuilder sb = new StringBuilder();//存放读进来的数据		
-		BaseChunk bc = new BaseChunk();
-		List<TreeNode> treeList = new ArrayList<>(); //存放标记了基本语块的树结构
+	public static List<TreeNode> run(String fileIn,List<String> cTag,String encoding) throws IOException{
 		
+		List<TreeNode> treeList = new ArrayList<>(); //存放标记了基本组块的树结构
 		
-		FileInputStream fis = new FileInputStream(fileIn);
-		InputStreamReader isr = new InputStreamReader(fis,"GBK");
-		BufferedReader br = new BufferedReader(isr);
-		String str = br.readLine();
-		while ((str=br.readLine())!=null)
-		{
-			if (str.contains("("))
-			{
-				sb.append(str.trim()+" ");
-			}
-			else 
-			{
-				if(!(sb.length()==0))
-				{			
-					List<String> a = bc.stringToList(sb.toString());
-					TreeNode t = bc.generateTree(a);
-					bc.searchForChunk(t,chunkTag);
-					treeList.add(t);
-					sb.delete(0,sb.length());
-				}
-			}			
-		}
-		br.close();
+		PlainTextByTreeStream lineStream = new PlainTextByTreeStream(
+				new FileInputStreamFactory(new File(fileIn)),encoding);
+		String bracketStr = "";
+		while((bracketStr = lineStream.read()) != "") {
+			TreeNode tree = BracketExpUtil.generateTree(bracketStr);
+			BaseChunk.searchForChunk(tree, cTag);	
+			treeList.add(tree);
+		}	
+		lineStream.close();
 		return treeList;
 	}
 	
@@ -72,7 +70,8 @@ public class ExtractBaseChunkRun {
 		FileWriter fw = new FileWriter(fileOut);
 		BufferedWriter bw = new BufferedWriter(fw);
 		for (int i = 0;i<target.size();i++) {
-			bw.write(target.get(i).toString());
+			String chunkStr = TreeNodeUtil.toChunkString(target.get(i));
+			bw.write(chunkStr);
 			bw.newLine();
 		}
 		bw.close();

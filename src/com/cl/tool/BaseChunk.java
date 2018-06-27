@@ -4,112 +4,81 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import org.omg.IOP.TAG_CODE_SETS;
+
+import com.lc.nlp4han.constituent.TreeNode;
+
 public class BaseChunk {
-	public List<TreeNode> list= new ArrayList<>();
-	
-	public BaseChunk() {
-		
+	//维护一个基本短语标记的列表
+	private static List<String> tags = new ArrayList<>();
+	static {
+		tags.add("NP");
+		tags.add("ADJP");
+		tags.add("ADVP");
+		tags.add("CLP");
+		tags.add("DNP");
+		tags.add("DVP");
+		tags.add("DP");
+		tags.add("PP");
+		tags.add("QP");
+		tags.add("UCP");
+		tags.add("VP");
+		tags.add("LCP");
+		tags.add("IP");
+		tags.add("PRN");
+		tags.add("LST");
+		tags.add("CP");
+		tags.add("FRAG");
 	}
 	
-	//根据括号表达式，存储树结构
-	public TreeNode generateTree(List<String> parts){
-        Stack<TreeNode> tree = new Stack<TreeNode>();
-        for (int i = 0; i < parts.size(); i++) {
-			if(!parts.get(i).equals(")") && !parts.get(i).equals(" ")){
-				tree.push(new TreeNode(parts.get(i)));
-			}else if(parts.get(i).equals(" ")){
-				
-			}else if(parts.get(i).equals(")")){
-				Stack<TreeNode> temp = new Stack<TreeNode>();
-				while(!tree.peek().getNodeName().equals("(")){
-					if(!tree.peek().getNodeName().equals(" ")){
-						temp.push(tree.pop());
+	/**
+	 * 提取基本短语块
+	 * @param tn 短语结构树
+	 * @param tag 待提取的基本短语块
+	 * 
+	 */
+
+	public static void searchForChunk(TreeNode tn, List<String> tag) {
+
+		List<? extends TreeNode> children = null;
+
+		boolean flag = true;// 标记是否是基本短语块
+		boolean tried = false;//节点是否被遍历过
+		if (tn != null) {
+			children = tn.getChildren();
+			if (!children.isEmpty()) {
+				for (TreeNode child : children) {
+					
+					// 判断该节点的子树中是否包含短语块
+					String name = child.getNodeName();
+					if (tags.contains(name)) {
+						flag = false;
+						break;
 					}
 				}
-				tree.pop();
-				TreeNode node = temp.pop();
-				while(!temp.isEmpty()){		
-					node.addChild(temp.pop());
-				}
-				tree.push(node);
+				tried = true;
 			}
 		}
-        TreeNode treeStruct = tree.pop();
-        return treeStruct;
-	}
-	
-	//切分括号表达式，并存入列表
-	public List<String> stringToList(String treeStr){
-		List<String> parts = new ArrayList<String>();
-        for (int index = 0; index < treeStr.length(); ++index) {
-            if (treeStr.charAt(index) == '(' || treeStr.charAt(index) == ')' || treeStr.charAt(index) == ' ') {
-                parts.add(Character.toString(treeStr.charAt(index)));
-            } else {
-                for (int i = index + 1; i < treeStr.length(); ++i) {
-                    if (treeStr.charAt(i) == '(' || treeStr.charAt(i) == ')' || treeStr.charAt(i) == ' ') {
-                        parts.add(treeStr.substring(index, i));
-                        index = i - 1;
-                        break;
-                    }
-                }
-            }
-        }
-        return parts;
-	}
-	
-	
-	//搜寻基本短语块
-	public void searchForChunk(TreeNode tn,String tag){
-		List<TreeNode> children =null;
-		boolean flag = true;//是否是基本短语块
-		boolean tried = false;//
-		if(tn != null)
+
+		if (tried) {
+			if (flag) {
+				if (tag.contains("all") && tags.contains(tn.getNodeName())) {
+					tn.setNewName("tag:" + tn.getNodeName());
+				} else {
+					if (tag.contains(tn.getNodeName())) {
+						tn.setNewName("tag:" + tn.getNodeName());
+					}
+				}
+				return;
+			}
+		}
+
+		for (int i = 0; i < tn.getChildrenNum(); i++)// 遍历
 		{
-			children = tn.getChildren();//tn节点的子树			
-			if (!children.isEmpty()) {
-				for(TreeNode child:children) {
-					List<TreeNode> secondChild = child.getChildren();//tn子树的子树
-					if(!secondChild.isEmpty()) {					
-						for(TreeNode t : secondChild) {																
-									if(!t.getChildren().isEmpty()) {								
-										flag = false;
-									}								
-							}
-						tried = true;							
-						}
-					}				
-				}
-				
-				if (tried)
-				{
-					if (flag) {	
-						if(tag.contains("all")) {
-							tn.setNodeName("tag:");
-						}else {							
-							if(tag.contains(tn.getNodeName())) {
-								tn.setNodeName("tag:");
-						}
-						}
-						return;
-					}					
-				}
-				
-				for (int i = 0;i<tn.numChildren();i++)//遍历
-				{
-					searchForChunk(children.get(i),tag);
-				}
-			}
+			searchForChunk(children.get(i), tag);
 		}
-	
-	//从所有基本短语块中查找目标短语块
-	public List<TreeNode> select(String tag){	
-		List<TreeNode> target = new ArrayList<>();
-		for (int i = 0;i<list.size();i++) {
-			if(list.get(i).getNodeName().equals(tag)) {
-				target.add(list.get(i));
-			}
-		}
-		return target;
-	}		
 	}
+}
+	
+			
 
