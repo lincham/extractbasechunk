@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.cl.tool.TreeNodeUtil;
 import com.lc.nlp4han.constituent.BracketExpUtil;
 import com.lc.nlp4han.constituent.PlainTextByTreeStream;
 import com.lc.nlp4han.constituent.TreeNode;
@@ -17,6 +18,12 @@ public class ExtractBaseChunkRun {
 	
 	public static void main(String[] args) throws IOException
 	{
+		
+		if (args.length < 1) {
+			usage();
+			return;
+		}
+		
 		String in = "";//输入文件路径
 		String out = "";//输出文件路径
 		String chunkTag = "";//要提取的标记
@@ -50,6 +57,11 @@ public class ExtractBaseChunkRun {
 		writeFile(target,out);
 	}	
 	
+	private static void usage() {
+		System.out.println(ExtractBaseChunkRun.class.getName()
+				+ " -in <inputFile> -out <outputFile> -chunkTag <targetTag> -encoding <encoding>");
+	}
+	
 	public static List<TreeNode> run(String fileIn,List<String> cTag,String encoding) throws IOException{
 		
 		List<TreeNode> treeList = new ArrayList<>(); //存放标记了基本组块的树结构
@@ -59,7 +71,7 @@ public class ExtractBaseChunkRun {
 		String bracketStr = "";
 		while((bracketStr = lineStream.read()) != "") {
 			TreeNode tree = BracketExpUtil.generateTree(bracketStr);
-			BaseChunk.searchForChunk(tree, cTag);	
+			BaseChunkSearcher.search(tree, cTag);	
 			treeList.add(tree);
 		}	
 		lineStream.close();
@@ -76,5 +88,7 @@ public class ExtractBaseChunkRun {
 		}
 		bw.close();
 	}
+	
+	
 
 }
